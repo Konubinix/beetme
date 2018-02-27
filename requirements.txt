@@ -1,0 +1,2 @@
+git+https://github.com/zoofio/flexx@ad966415529a3a2c43e473aad07044bb711a85e5#egg=flexx
+requests
