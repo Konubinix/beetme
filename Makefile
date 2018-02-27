@@ -2,8 +2,11 @@ ASSETS = $(shell find assets/ -type f)
 
 all: deploy
 
-json_deps: bower.json
-	bower install
+./node_modules/.bin/bower:
+	npm install bower
+
+json_deps: bower.json ./node_modules/.bin/bower
+	./node_modules/.bin/bower install
 	touch $@
 
 venv:
