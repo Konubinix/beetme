@@ -7,3 +7,4 @@ python_deps
 .tern-port
 __pycache__
 deploy
+README.html
