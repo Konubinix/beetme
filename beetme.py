@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
@@ -757,14 +758,23 @@ padding: 1em;
             self.audio.node.pause()
 
         @event.connect("seekforward_button.mouse_click")
-        def seekforward(self, *evs):
+        def _seekforward(self, *evs):
+            self.seekforward()
+
+        def seekforward(self):
             self.audio.node.currentTime = Math.min(self.audio.node.currentTime + self.skipTime, self.audio.node.duration)
 
         @event.connect("seekbackward_button.mouse_click")
+        def _seekbackward(self, *evs):
+            self.seekbackward()
+
         def seekbackward(self, *evs):
             self.audio.node.currentTime = Math.max(self.audio.node.currentTime - self.skipTime, 0)
 
         @event.connect("prev_button.mouse_click")
+        def _previoustrack(self, *evs):
+            self.previoustrack()
+
         def previoustrack(self, *evs):
             self.select_prev()
             self._play_cache()
@@ -791,6 +801,9 @@ padding: 1em;
             self.cache_table.row(new_index).select()
 
         @event.connect("next_button.mouse_click")
+        def _nexttrack(self, *evs):
+            self.nexttrack()
+
         def nexttrack(self, *evs):
             if self.shuffle_button.checked:
                 self.select_rand()
