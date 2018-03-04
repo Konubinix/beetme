@@ -355,14 +355,18 @@ padding: 1em;
         def beet_fetch(self, url):
             headers = {}
             if self._beet_username.text != "":
-                headers['authorization'] = 'Basic ' + btoa(self._beet_username.text + ":" + self._beet_password.text)
+                headers['Authorization'] = 'Basic ' + btoa(self._beet_username.text + ":" + self._beet_password.text)
+            def error_catch(err):
+                alert("Failed to process url: " + url)
+                window.err = err
+                return Promise.reject(err)
             return fetch(
                 url,
                 {
-                    "header": Headers(headers),
+                    "headers": Headers(headers),
                     "credentials": "include",
                 }
-            )
+            ).catch(error_catch)
 
         @event.connect('search_query.text')
         def _search_query(self, *evs):
