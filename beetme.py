@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
@@ -268,6 +267,8 @@ padding: 1em;
             self.play_cache_url(id)
 
         def play_cache_url(self, url):
+            if cookie.get("current_song_id") != url:
+                cookie.remove("current_time")
             cookie.set("current_song_id", url)
             self.emit(
                 "play_cached_url",
@@ -453,6 +454,9 @@ padding: 1em;
                 self.audio.node.pause()
                 self.audio.node["src"] = url
                 self.audio.node.load()
+                current_time = cookie("current_time")
+                if current_time != None:
+                    self.audio.node.currentTime = current_time
                 self.audio.node.play()
                 self.focus_selected()
 
@@ -750,6 +754,11 @@ padding: 1em;
             self.title = "BeetMe"
             self.icon = "/beetme.png"
             self.reset_cache()
+            setInterval(self.remember_current_time, 3000)
+
+        def remember_current_time(self):
+            if not self.audio.node.paused:
+                cookie.set("current_time", self.audio.node.currentTime)
 
         def play(self):
             self.audio.node.play()
