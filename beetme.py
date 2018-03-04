@@ -712,12 +712,13 @@ padding: 1em;
                 random = cookie.get("random")
                 if random == "true":
                     self.shuffle_button.checked = True
-                beet_url = cookie.get("beet_url")
+                beet_url = cookie("beet_url")
                 if beet_url == None:
                     self._beet_url.text = prompt("Please give me the url to beet web")
                     alert("The beet web url may be changed in the config tab")
                 else:
                     self._beet_url.text = beet_url
+                    cookie.set("beet_url", beet_url)
                 beet_username = cookie.get("beet_username")
                 if beet_username != None:
                     self._beet_username.text = beet_username
