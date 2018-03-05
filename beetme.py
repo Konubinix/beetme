@@ -179,6 +179,9 @@ padding: 1em;
         with ui.TabPanel(flex=0.9) as self.tab:
             with ui.HBox(title="Search") as self.search_widget:
                 with ui.VBox():
+                    ui.Label(
+                        style="font-size: 0.5em;",
+                        text="A and B => A/B; A or B => A , B")
                     with ui.HBox(flex=0.1):
                         ui.Label(text="Query", flex=0)
                         self.search_query = ui.LineEdit(text="", flex=1)
@@ -282,7 +285,9 @@ padding: 1em;
             if not url.endswith("/"):
                 url = url + "/"
             l = document.createElement("a")
-            l["href"] = url + query
+            url = url + query
+            url = RawJS("""url.replace(new RegExp(" , ", "g"), "/,/")""")
+            l["href"] = url
             return l.href
 
         @event.connect("put_to_cache.mouse_click")
