@@ -795,13 +795,13 @@ padding: 1em;
                 navigator.mediaSession.setActionHandler('seekforward', self.seekforward)
                 navigator.mediaSession.setActionHandler('previoustrack', self.previoustrack)
                 navigator.mediaSession.setActionHandler('nexttrack', self.nexttrack)
-            def nexttrack(event):
+            def onended(event):
                 return self.nexttrack()
-            self.audio.node.onended = nexttrack
             def onplay(event):
                 self.toggle_button.checked = True
             def onpause(event):
                 self.toggle_button.checked = False
+            self.audio.node.onended = onended
             self.audio.node.onplay = onplay
             self.audio.node.onpause = onpause
             self.title = "BeetMe"
