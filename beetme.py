@@ -353,6 +353,7 @@ padding: 1em;
             def create_buttons(json):
                 data = []
                 columns = [
+                    {"data": "track"},
                     {"data": "title"},
                     {"data": "album"},
                     {"data": "artist"},
@@ -364,6 +365,7 @@ padding: 1em;
                     data.append(
                         {
                             "DT_RowId": self.beet_url("item/" + res["id"] + "/file"),
+                            "track": res["track"],
                             "title": res["title"],
                             "album": res["album"],
                             "artist": res["artist"],
@@ -535,6 +537,7 @@ padding: 1em;
                 for r in r["results"]:
                     data_dict.append(r["docs"][0]["ok"])
                 columns = [
+                    {"data": "track"},
                     {"data": "title"},
                     {"data": "album"},
                     {"data": "artist"},
@@ -542,6 +545,7 @@ padding: 1em;
                 data = [
                     {
                         "DT_RowId": res["_id"],
+                        "track": res["track"],
                         "title": res["title"],
                         "album": res["album"],
                         "artist": res["artist"],
