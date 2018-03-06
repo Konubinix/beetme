@@ -82,6 +82,26 @@ add_asset(
 )
 
 add_asset(
+    "dataTables.rowReorder.js",
+    os.path.join(
+        os.path.dirname(__file__),
+        "bower_components",
+        "datatables.net-rowreorder",
+        "js",
+        "dataTables.rowReorder.min.js"),
+)
+
+add_asset(
+    "dataTables.rowReorder.css",
+    os.path.join(
+        os.path.dirname(__file__),
+        "bower_components",
+        "datatables.net-rowreorder-dt",
+        "css",
+        "rowReorder.dataTables.css"),
+)
+
+add_asset(
     "dataTables.buttons.js",
     os.path.join(
         os.path.dirname(__file__),
@@ -175,6 +195,21 @@ padding: 1em;
 }
 """
     def init(self):
+        def head_table(table):
+            with table:
+                with ui.html.thead():
+                    with ui.html.tr():
+                        ui.html.th(text="track")
+                        ui.html.th(text="title")
+                        ui.html.th(text="album")
+                        ui.html.th(text="artist")
+                with ui.html.tfoot():
+                    with ui.html.tr():
+                        ui.html.th(text="track")
+                        ui.html.th(text="title")
+                        ui.html.th(text="album")
+                        ui.html.th(text="artist")
+
         self.progress = ui.ProgressBar(value=0, flex=0)
         with ui.TabPanel(flex=0.9) as self.tab:
             with ui.HBox(title="Search") as self.search_widget:
@@ -192,6 +227,7 @@ padding: 1em;
                         self.select_none = ui.Button(text="Select none")
                 with ui.Layout(css_class="table"):
                     self.search_results = ui.html.table()
+                    head_table(self.search_results)
 
             with ui.HBox(title="Cache") as self.cache_widget:
                 with ui.VBox(flex=0.5):
@@ -209,6 +245,7 @@ padding: 1em;
                         self.next_button = ui.Button(text="->>", flex=0.7)
                 with ui.Layout(css_class="table", flex=0.5):
                     self.cache = ui.html.table(flex=0.5)
+                    head_table(self.cache)
             with ui.FormLayout(title="Config"):
                 self.update = ui.Button(text="Update", flex=1)
                 self._beet_url = ui.LineEdit(title="Beet url")
@@ -341,6 +378,7 @@ padding: 1em;
                     {
                         "data": data,
                         "columns": columns,
+                        "rowReorder": True,
                         "select": {
                             "style": select_style,
                         },
@@ -517,6 +555,7 @@ padding: 1em;
                     {
                         "data": data,
                         "columns": columns,
+                        "rowReorder": True,
                         "select": {
                             "style": "single",
                         },
