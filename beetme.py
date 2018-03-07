@@ -32,6 +32,17 @@ add_asset(
 )
 
 add_asset(
+    "moment-with-locales.min.js",
+    os.path.join(
+        os.path.dirname(__file__),
+        "bower_components",
+        "moment",
+        "min",
+        "moment-with-locales.min.js",
+    )
+)
+
+add_asset(
     "jquery-3.2.1.js",
     os.path.join(
         os.path.dirname(__file__),
@@ -251,11 +262,40 @@ padding: 1em;
                 self._beet_url = ui.LineEdit(title="Beet url")
                 self._beet_username = ui.LineEdit(title="Username")
                 self._beet_password = ui.LineEdit(title="Password", password_mode=True)
-        self.track = ui.Label()
-        with ui.HBox(flex=0.1):
+        self.track = ui.Label(flex=0.1)
+        with ui.HBox(flex=0.2):
             self.audio = ui.html.audio(flex=1)
+        with ui.HBox(flex=0.1):
+            self.time_min = ui.Label(text="15", flex=0.1)
+            ui.Label(text="min", flex=0.1)
+            self.time_sec = ui.Label(text="00", flex=0.1)
+            ui.Label(text="s", flex=0.1)
+            self.timeminus = ui.Button(text="-1", flex=0.5)
+            self.timeplus = ui.Button(text="+1", flex=0.5)
+            self.run_timer = ui.ToggleButton(text="Run", flex=0.5)
+            self.timereset = ui.Button(text="Reset", flex=0.5)
 
     class JS:
+        @event.connect("timeplus.mouse_click")
+        def _timeplus(self, *evs):
+            self.time_min.text = parseInt(self.time_min.text) + 1
+
+        @event.connect("timeminus.mouse_click")
+        def _timeminus(self, *evs):
+            self.time_min.text = parseInt(self.time_min.text) - 1
+
+        @event.connect("timereset.mouse_click")
+        def _timereset(self, *evs):
+            self.run_timer.checked = False
+            self.time_min.text = "15"
+            self.time_sec.text = "00"
+
+        @event.connect("run_timer.checked")
+        def _run_timer(self, *evs):
+            if not self.run_timer.checked:
+                if self.run_timer_interval:
+                    clearInterval(self.run_timer_interval)
+
         @event.connect("tab.current")
         def _tab_current(self, *evs):
             if self.inited == None:
@@ -476,6 +516,16 @@ padding: 1em;
         def focus_selected(self, *evs):
             self.cache_table.row({"selected": True}).show().draw("page")
             self.cache_table.row({"selected": True}).node().scrollIntoView()
+
+        def up_timer(self):
+            now = moment()
+            if now > self.end_time:
+                self.audio.node.pause()
+                self._timereset()
+            else:
+                duration = moment.duration(self.end_time - now)
+                self.time_min.text = duration.minutes()
+                self.time_sec.text = duration.seconds()
 
         @event.connect("play_cached_url")
         def _play_cached_url(self, *evs):
@@ -799,6 +849,13 @@ padding: 1em;
                 return self.nexttrack()
             def onplay(event):
                 self.toggle_button.checked = True
+                if self.run_timer.checked:
+                    self.end_time = moment().add(
+                        parseInt(self.time_min.text), "minutes",
+                        parseInt(self.time_sec.text), "seconds",
+                    )
+                    self.run_timer_interval = setInterval(self.up_timer, 1000)
+
             def onpause(event):
                 self.toggle_button.checked = False
             self.audio.node.onended = onended
