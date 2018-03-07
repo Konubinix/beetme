@@ -251,21 +251,23 @@ padding: 1em;
                     self.search_results = ui.html.table()
                     head_table(self.search_results)
 
-            with ui.HBox(title="Cache") as self.cache_widget:
-                with ui.VBox(flex=0.5):
-                    self._reset_cache = ui.Button(text="Reset cache", flex=0.1)
-                    self.remove = ui.Button(text="Remove", flex=0.1)
-                    self.clear_cache = ui.Button(text="Clear cache", flex=0.1)
-                    self.shuffle_button = ui.ToggleButton(text="Random", flex=0.2)
-                    self.show_button = ui.Button(text="Show", flex=0.2)
-                    self.play_button = ui.Button(text="Play selected", flex=0.2)
-                    self.toggle_button = ui.ToggleButton(text="Play", flex=0.2)
+            with ui.HBox(title="Play"):
+                with ui.VBox(flex=0.3):
+                    with ui.HBox(flex=0.1):
+                        self._reset_cache = ui.Button(text="Reset cache", flex=0.2)
+                        self.remove = ui.Button(text="Remove", flex=0.1)
+                    with ui.HBox(flex=0.2):
+                        self.play_button = ui.Button(text="Play selected", flex=0.2)
+                        self.show_button = ui.Button(text="Show", flex=0.1)
+                    with ui.HBox(flex=0.2):
+                        self.toggle_button = ui.ToggleButton(text="Play", flex=0.2)
+                        self.shuffle_button = ui.ToggleButton(text="Random", flex=0.2)
                     with ui.HBox(flex=0.2):
                         self.prev_button = ui.Button(text="<<-", flex=0.7)
                         self.seekbackward_button = ui.Button(text="<-", flex=0.2)
                         self.seekforward_button = ui.Button(text="->", flex=0.2)
                         self.next_button = ui.Button(text="->>", flex=0.7)
-                with ui.Layout(css_class="table", flex=0.5):
+                with ui.Layout(css_class="table", flex=0.7):
                     self.cache = ui.html.table(flex=0.5)
                     head_table(self.cache)
             with ui.FormLayout(title="Config"):
@@ -274,7 +276,7 @@ padding: 1em;
                 self._beet_username = ui.LineEdit(title="Username")
                 self._beet_password = ui.LineEdit(title="Password", password_mode=True)
         self.track = ui.Label(flex=0.1)
-        with ui.HBox(flex=0.2):
+        with ui.HBox(flex=0.4):
             self.audio = ui.html.audio(flex=1)
         with ui.HBox(flex=0.1):
             self.time_min = ui.Label(text="15", flex=0.1)
