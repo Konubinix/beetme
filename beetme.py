@@ -21,16 +21,16 @@ def add_asset(name, path):
         )
 
 
-add_asset(
-    "bluebird.min.js",
-    os.path.join(
-        os.path.dirname(__file__),
-        "bower_components",
-        "bluebird",
-        "js",
-        "browser",
-        "bluebird.min.js"),
-)
+# add_asset(
+#     "bluebird.min.js",
+#     os.path.join(
+#         os.path.dirname(__file__),
+#         "bower_components",
+#         "bluebird",
+#         "js",
+#         "browser",
+#         "bluebird.min.js"),
+# )
 
 add_asset(
     "pouchdb-6.3.4.js",
