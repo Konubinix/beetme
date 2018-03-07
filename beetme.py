@@ -256,10 +256,10 @@ padding: 1em;
                     with ui.HBox(flex=0.1):
                         self._reset_cache = ui.Button(text="Reset cache", flex=0.2)
                         self.remove = ui.Button(text="Remove", flex=0.1)
-                    with ui.HBox(flex=0.2):
+                    with ui.HBox(flex=1):
                         self.play_button = ui.Button(text="Play selected", flex=0.2)
                         self.show_button = ui.Button(text="Show", flex=0.1)
-                    with ui.HBox(flex=0.2):
+                    with ui.HBox(flex=0.1):
                         self.toggle_button = ui.ToggleButton(text="Play", flex=0.2)
                         self.shuffle_button = ui.ToggleButton(text="Random", flex=0.2)
                     with ui.HBox(flex=0.2):
