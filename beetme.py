@@ -270,6 +270,11 @@ padding: 1em;
                 with ui.Layout(css_class="table", flex=0.7):
                     self.cache = ui.html.table(flex=0.5)
                     head_table(self.cache)
+            with ui.FormLayout(title="Cache"):
+                self.cache_list = ui.ComboBox(
+                    editable=True,
+                )
+                self.clear_cache = ui.Button(text="Remove cache", flex=0.1)
             with ui.FormLayout(title="Config"):
                 self.update = ui.Button(text="Update", flex=1)
                 self._beet_url = ui.LineEdit(title="Beet url")
@@ -507,8 +512,9 @@ padding: 1em;
                     self.put_to_cache.disabled = False
                     self.progress.value = 0
                     self.reset_cache()
+                    self.init_cache_list()
 
-                cache_promise = caches.open("beetme")
+                cache_promise = caches.open(self.cache_list.text)
                 keys_promise = cache_promise.then(
                     lambda cache: cache.keys()
                 )
@@ -572,7 +578,7 @@ padding: 1em;
                 self.audio.node.play()
                 self.focus_selected()
 
-            caches.open("beetme").then(
+            caches.open(self.cache_list.text).then(
                 lambda cache: cache.match(url)
             ).then(
                 lambda resp: resp.blob()
@@ -661,7 +667,7 @@ padding: 1em;
                     k.url
                     for k in keys
                 ]
-                return db.bulkGet(
+                return self.db.bulkGet(
                     {
                         "docs": [
                             {
@@ -673,39 +679,27 @@ padding: 1em;
                 )
 
 
-            caches.open("beetme").then(
+            caches.open(self.cache_list.text).then(
                 lambda cache: cache.keys()
             ).then(
                 get_db_info
             ).then(
                 create_table
-            ).catch(alert)
+            )
 
         def reload(self):
             window.location.reload(True)
 
         @event.connect("clear_cache.mouse_click")
         def _clear_cache(self):
-            self.clean_db()
-            cache_promise = caches.open("beetme")
-            key_promise = cache_promise.then(
-                lambda cache: cache.keys()
-            )
-            Promise.all(
-                [
-                    cache_promise,
-                    key_promise,
-                ]
+            cookie.remove("current_cache")
+            caches.delete(
+                self.cache_list.text
             ).then(
-                lambda args: Promise.all(
-                    [
-                        args[0].delete(k)
-                        for k in args[1]
-                    ]
-                )
+                self.clean_db
             ).then(
                 self.reload
-            ).catch(alert)
+            )
 
         def db_remove(self, url):
             def db_remove(obj):
@@ -727,21 +721,47 @@ padding: 1em;
                     promises.append(self.db_remove(url))
                 return Promise.all(promises)
 
-            caches.open("beetme").then(
-                delete_cache
-            ).then(
-                self.select_near
-            ).then(
-                self.reset_cache
-            ).catch(
-                alert
-            )
+            if confirm("Remove for sure?"):
+                caches.open(self.cache_list.text).then(
+                    delete_cache
+                ).then(
+                    self.select_near
+                ).then(
+                    self.reset_cache
+                ).catch(
+                    alert
+                )
+
+        def start_db(self):
+            self.db = PouchDB(self.cache_list.text, {})
+            window.db = self.db
+
+        @event.connect("cache_list.text")
+        def change_cache(self, *evs):
+            if self.inited:
+                cookie.set("current_cache", self.cache_list.text)
+                self.setup_db().then(
+                    self.reset_cache
+                )
+
+        def setup_db(self, *ev):
+            if self.db != None:
+                return self.db.close().then(
+                    self.start_db
+                )
+            else:
+                def promise(resolve, reject):
+                    self.start_db()
+                    resolve("OK")
+                return Promise(promise)
 
         def clean_db(self):
             if self.db != None:
-                self.db.destroy()
-            self.db = PouchDB("info", {})
-            window.db = db
+                return self.db.destroy().then(
+                    self.start_db
+                )
+            else:
+                return self.start_db()
 
         @event.connect("update.mouse_click")
         def _update(self):
@@ -808,6 +828,19 @@ padding: 1em;
             meta["user-scalable"] = 0
             window.document.head.appendChild(meta)
 
+        def init_cache_list(self):
+            def closure_inited(inited):
+                def _init_cache_list(names):
+                    names.remove("beetme-offline")
+                    if not "default" in names:
+                        names = ["default"] + names
+                    self.cache_list.options = names
+                    if not inited:
+                        self.cache_list.text = cookie.get("current_cache") or names[0]
+                window.caches.keys().then(
+                    _init_cache_list
+                ).catch(alert)
+            closure_inited(self.inited)
 
         def debug_promise(self):
             Promise.config(
@@ -846,6 +879,7 @@ padding: 1em;
                 if beet_password != None:
                     self._beet_password.text = beet_password
                 self.search_query.text = cookie.get("search_query") or ""
+                self.init_cache_list()
                 self.inited = True
 
             setTimeout(init_post, 0)
@@ -885,7 +919,6 @@ padding: 1em;
             self.audio.node.onpause = onpause
             self.title = "BeetMe"
             self.icon = "/beetme.png"
-            self.reset_cache()
             setInterval(self.remember_current_time, 3000)
 
         def remember_current_time(self):
