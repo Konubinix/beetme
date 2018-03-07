@@ -26,7 +26,8 @@
     "cookie": "^1.2.2",
     "datatables.net-rowreorder": "^1.2.3",
     "datatables.net-rowreorder-dt": "^1.2.3",
-    "moment": "momentjs#^2.21.0"
+    "moment": "momentjs#^2.21.0",
+    "bluebird": "^3.5.1"
   },
   "resolutions": {
     "jquery": "^3.3.1"

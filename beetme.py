@@ -22,6 +22,17 @@ def add_asset(name, path):
 
 
 add_asset(
+    "bluebird.min.js",
+    os.path.join(
+        os.path.dirname(__file__),
+        "bower_components",
+        "bluebird",
+        "js",
+        "browser",
+        "bluebird.min.js"),
+)
+
+add_asset(
     "pouchdb-6.3.4.js",
     os.path.join(
         os.path.dirname(__file__),
@@ -795,11 +806,20 @@ padding: 1em;
             meta["user-scalable"] = 0
             window.document.head.appendChild(meta)
 
+
+        def debug_promise(self):
+            Promise.config(
+                {
+                    "warnings": True,
+                    "longStackTraces": True,
+                    "cancellation": True,
+                    "monitoring": True,
+            })
+
         def init(self):
             # PouchDB.debug.enable('*')
             cookie.defaults.expires = 7
-            self.db = PouchDB("info", {})
-            window.db = self.db
+            # self.debug_promise()
             def init_post():
                 tab_current = cookie.get("tab.current")
                 if tab_current != None:
