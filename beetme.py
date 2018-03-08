@@ -234,7 +234,7 @@ padding: 1em;
         self.progress = ui.ProgressBar(value=0, flex=0)
         with ui.TabPanel(flex=0.9) as self.tab:
             with ui.HBox(title="Search") as self.search_widget:
-                with ui.VBox():
+                with ui.VBox(flex=0.3):
                     ui.Label(
                         style="font-size: 0.5em;",
                         text="A and B => A/B; A or B => A , B")
@@ -246,12 +246,18 @@ padding: 1em;
                         self.put_to_cache = ui.Button(text="Put to cache")
                         self.select_all = ui.Button(text="Select all")
                         self.select_none = ui.Button(text="Select none")
-                with ui.Layout(css_class="table"):
+                with ui.Layout(css_class="table", flex=0.7):
                     self.search_results = ui.html.table()
                     head_table(self.search_results)
 
             with ui.HBox(title="Play"):
                 with ui.VBox(flex=0.3):
+                    with ui.HBox():
+                        ui.Label(text="cache", flex=0)
+                        self.cache_list = ui.ComboBox(
+                            editable=True,
+                            flex=1
+                        )
                     with ui.HBox(flex=0.1):
                         self._reset_cache = ui.Button(text="Reset cache", flex=0.2)
                         self.remove = ui.Button(text="Remove", flex=0.1)
@@ -270,19 +276,15 @@ padding: 1em;
                     self.cache = ui.html.table(flex=0.5)
                     head_table(self.cache)
             with ui.FormLayout(title="Cache"):
-                self.cache_list = ui.ComboBox(
-                    editable=True,
-                )
-                self.clear_cache = ui.Button(text="Remove cache", flex=0.1)
+                self.clear_cache = ui.Button(text="Remove cache", flex=0)
             with ui.FormLayout(title="Config"):
                 self.update = ui.Button(text="Update", flex=1)
                 self._beet_url = ui.LineEdit(title="Beet url")
                 self._beet_username = ui.LineEdit(title="Username")
                 self._beet_password = ui.LineEdit(title="Password", password_mode=True)
-        self.track = ui.Label(flex=0.1)
-        with ui.HBox(flex=0.4):
+        with ui.HBox(flex=0):
             self.audio = ui.html.audio(flex=1)
-        with ui.HBox(flex=0.1):
+        with ui.HBox(flex=0):
             self.time_min = ui.Label(text="15", flex=0.1)
             ui.Label(text="min", flex=0.1)
             self.time_sec = ui.Label(text="00", flex=0.1)
