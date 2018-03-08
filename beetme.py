@@ -547,6 +547,9 @@ padding: 1em;
                 duration = moment.duration(self.end_time - now)
                 self.time_min.text = duration.minutes()
                 self.time_sec.text = duration.seconds()
+                if duration.minutes() == 0:
+                    if duration.seconds() in [10, 20, 30, 40, 50]:
+                        self.audio.node.volume = 0.7 * self.audio.node.volume
 
         def load_cached_url(self, url):
             def set_mediadata(obj):
@@ -900,6 +903,7 @@ padding: 1em;
                 return self.nexttrack()
             def onplay(event):
                 self.toggle_button.checked = True
+                self.audio.node.volume = 1.0
                 if self.run_timer.checked:
                     self.start_timer()
             def onpause(event):
