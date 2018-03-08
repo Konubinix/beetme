@@ -676,6 +676,8 @@ padding: 1em;
                 self.cache_table.on('select', on_select)
                 self.toastr_info("Cache reset")
                 self.focus_selected()
+                if cookie.get("current_time"):
+                    self.load_cache()
 
             def get_db_info(keys):
                 paths = [
