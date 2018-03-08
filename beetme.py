@@ -907,7 +907,7 @@ padding: 1em;
             navigator.serviceWorker.register("/beetme.js").catch(self.toastr_warn)
             # self.setup_skewer()
             self.audio.node.controls = True
-            toastr.options.positionClass = "toast-top-right"
+            toastr.options.positionClass = "toast-bottom-right"
             toastr.flush = toastr.clear
             self.skipTime = 10
             if navigator.mediaSession != None:
