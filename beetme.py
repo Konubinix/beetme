@@ -372,9 +372,9 @@ padding: 1em;
             self.load_cached_url(id)
 
         def play_cache_url(self, url):
-            if cookie.get("current_song_id") != url:
-                cookie.remove("current_time")
-            cookie.set("current_song_id", url)
+            if cookie.get(self.cache_list.text + "_current_song_id") != url:
+                cookie.remove(self.cache_list.text + "_current_time")
+            cookie.set(self.cache_list.text + "_current_song_id", url)
             self.load_cached_url(
                 url
             ).then(
@@ -570,7 +570,7 @@ padding: 1em;
                 self.audio.node.pause()
                 self.audio.node["src"] = url
                 self.audio.node.load()
-                current_time = cookie("current_time")
+                current_time = cookie.get(self.cache_list.text + "_current_time")
                 if current_time != None:
                     self.audio.node.currentTime = current_time
 
@@ -641,7 +641,7 @@ padding: 1em;
                     select_n_play,
                 )
                 if data != []:
-                    selected_row_id = cookie.get("selected_row")
+                    selected_row_id = cookie.get(self.cache_list.text + "_selected_row")
                     if selected_row_id != None:
                         selected_row = self.cache_table.row(
                             "*[id='" + selected_row_id + "']"
@@ -652,12 +652,12 @@ padding: 1em;
 
                 def on_select(e, dt, type, indexes):
                     if type == 'row':
-                        cookie.set("selected_row", dt.row(indexes[0]).id())
+                        cookie.set(self.cache_list.text + "_selected_row", dt.row(indexes[0]).id())
 
                 self.cache_table.on('select', on_select)
                 self.toastr_info("Cache reset")
                 self.focus_selected()
-                if cookie.get("current_time"):
+                if cookie.get(self.cache_list.text + "_current_time"):
                     self.load_cache()
 
             def get_db_info(keys):
@@ -811,7 +811,7 @@ padding: 1em;
         def _shuffle_checked(self, *evs):
             if self.inited == None:
                 return
-            cookie.set("random", self.shuffle_button.checked)
+            cookie.set(self.cache_list.text + "_random", self.shuffle_button.checked)
 
         def setup_meta(self):
             meta = document.createElement("meta")
@@ -857,7 +857,7 @@ padding: 1em;
                         if child.title == tab_current:
                             self.tab.current = child
                             break
-                random = cookie.get("random")
+                random = cookie.get(self.cache_list.text + "_random")
                 if random == "true":
                     self.shuffle_button.checked = True
                 beet_url = cookie("beet_url")
@@ -920,7 +920,7 @@ padding: 1em;
 
         def remember_current_time(self):
             if not self.audio.node.paused:
-                cookie.set("current_time", self.audio.node.currentTime)
+                cookie.set(self.cache_list.text + "_current_time", self.audio.node.currentTime)
 
         def play(self):
             self.audio.node.play()
