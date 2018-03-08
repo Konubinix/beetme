@@ -193,12 +193,11 @@ font-weight: bold;
 
 body {
 //background-color: #4682b4;
-background-color: #87ceeb;
+//background-color: #87ceeb;
+background-color: PaleTurquoise;
+background-color: WhiteSmoke;
+background-color: #dcf1ff;
 }
-
-// button {
-// font-size: 2em;
-// }
 
 .p-TabBar-tabLabel{
 font-size: 2em;
