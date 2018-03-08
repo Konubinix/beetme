@@ -317,6 +317,7 @@ padding: 1em;
             else:
                 if self.run_timer_interval:
                     clearInterval(self.run_timer_interval)
+                    self.end_time = None
 
         @event.connect("tab.current")
         def _tab_current(self, *evs):
