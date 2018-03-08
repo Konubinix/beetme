@@ -707,14 +707,15 @@ padding: 1em;
 
         @event.connect("clear_cache.mouse_click")
         def _clear_cache(self):
-            cookie.remove("current_cache")
-            caches.delete(
-                self.cache_list.text
-            ).then(
-                self.clean_db
-            ).then(
-                self.reload
-            )
+            if confirm("Really removing the cache?"):
+                cookie.remove("current_cache")
+                caches.delete(
+                    self.cache_list.text
+                ).then(
+                    self.clean_db
+                ).then(
+                    self.reload
+                )
 
         def db_remove(self, url):
             def db_remove(obj):
