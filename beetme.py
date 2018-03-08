@@ -311,7 +311,10 @@ padding: 1em;
 
         @event.connect("run_timer.checked")
         def _run_timer(self, *evs):
-            if not self.run_timer.checked:
+            if self.run_timer.checked:
+                if not self.audio.node.paused:
+                    self.start_timer()
+            else:
                 if self.run_timer_interval:
                     clearInterval(self.run_timer_interval)
 
@@ -909,12 +912,7 @@ padding: 1em;
             def onplay(event):
                 self.toggle_button.checked = True
                 if self.run_timer.checked:
-                    self.end_time = moment().add(
-                        parseInt(self.time_min.text), "minutes",
-                        parseInt(self.time_sec.text), "seconds",
-                    )
-                    self.run_timer_interval = setInterval(self.up_timer, 1000)
-
+                    self.start_timer()
             def onpause(event):
                 self.toggle_button.checked = False
             self.audio.node.onended = onended
@@ -923,6 +921,13 @@ padding: 1em;
             self.title = "BeetMe"
             self.icon = "/beetme.png"
             setInterval(self.remember_current_time, 3000)
+
+        def start_timer(self):
+            self.end_time = moment().add(
+                parseInt(self.time_min.text), "minutes",
+                parseInt(self.time_sec.text), "seconds",
+            )
+            self.run_timer_interval = setInterval(self.up_timer, 1000)
 
         def remember_current_time(self):
             if not self.audio.node.paused:
