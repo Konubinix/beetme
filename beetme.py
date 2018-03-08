@@ -367,6 +367,10 @@ padding: 1em;
             id = self.cache_table.row({"selected": True}).id()
             self.play_cache_url(id)
 
+        def load_cache(self):
+            id = self.cache_table.row({"selected": True}).id()
+            self.load_cached_url(id)
+
         def play_cache_url(self, url):
             if cookie.get("current_song_id") != url:
                 cookie.remove("current_time")
@@ -551,10 +555,7 @@ padding: 1em;
                 self.time_min.text = duration.minutes()
                 self.time_sec.text = duration.seconds()
 
-        @event.connect("play_cached_url")
-        def _play_cached_url(self, *evs):
-            ev = evs[-1]
-            url = ev["url"]
+        def load_cached_url(self, url):
             def set_mediadata(obj):
                 navigator.mediaSession.metadata = MediaMetadata({
                     "title": obj["title"],
@@ -569,10 +570,9 @@ padding: 1em;
             def update_track(obj):
                 if navigator.mediaSession != None:
                     set_mediadata(obj)
-                self.track.text = obj["title"]
             self.db.get(url).then(update_track).catch(alert)
 
-            def play_blob(blob):
+            def load_blob(blob):
                 url = window.URL.createObjectURL(blob)
                 self.audio.node.pause()
                 self.audio.node["src"] = url
@@ -580,15 +580,25 @@ padding: 1em;
                 current_time = cookie("current_time")
                 if current_time != None:
                     self.audio.node.currentTime = current_time
-                self.audio.node.play()
-                self.focus_selected()
 
-            caches.open(self.cache_list.text).then(
+            return caches.open(self.cache_list.text).then(
                 lambda cache: cache.match(url)
             ).then(
                 lambda resp: resp.blob()
             ).then(
-                play_blob
+                load_blob
+            )
+
+        @event.connect("play_cached_url")
+        def _play_cached_url(self, *evs):
+            ev = evs[-1]
+            url = ev["url"]
+            self.load_cached_url(
+                url
+            ).then(
+                lambda : self.focus_selected()
+            ).then(
+                lambda : self.audio.node.play()
             ).catch(alert)
 
         @event.connect("search_query.key_press")
