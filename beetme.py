@@ -1014,3 +1014,21 @@ padding: 1em;
                 self.select_prev()
             else:
                 self.select_next()
+
+        @event.connect("key_press")
+        def _key_press(self, *evs):
+            key = evs[-1].key
+            if key == " ":
+                self.toggle_button.checked = not self.toggle_button.checked
+
+        @event.connect("key_down")
+        def _key_down(self, *evs):
+            key = evs[-1].key
+            if key == 'ArrowRight':
+                self.seekforward()
+            elif key == 'ArrowLeft':
+                self.seekbackward()
+            elif key == "PageDown":
+                self.nexttrack()
+            elif key == "PageUp":
+                self.previoustrack()
