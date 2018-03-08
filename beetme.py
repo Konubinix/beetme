@@ -819,10 +819,7 @@ padding: 1em;
         def setup_meta(self):
             meta = document.createElement("meta")
             meta["name"] = "viewport"
-            meta["content"] = "width=device-width"
-            meta["initial-scale"] = 1.0
-            meta["maximum-scale"] = 1.0
-            meta["user-scalable"] = 0
+            meta["content"] = "width=device-width, initial-scale=1, maximum-scale=1 user-scalable=0"
             window.document.head.appendChild(meta)
 
         def init_cache_list(self):
