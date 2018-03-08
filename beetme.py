@@ -375,12 +375,13 @@ padding: 1em;
             if cookie.get("current_song_id") != url:
                 cookie.remove("current_time")
             cookie.set("current_song_id", url)
-            self.emit(
-                "play_cached_url",
-                {
-                    "url": url,
-                },
-            )
+            self.load_cached_url(
+                url
+            ).then(
+                lambda : self.focus_selected()
+            ).then(
+                lambda : self.audio.node.play()
+            ).catch(alert)
 
         def beet_url(self, query):
             url = self._beet_url.text
@@ -394,20 +395,62 @@ padding: 1em;
 
         @event.connect("put_to_cache.mouse_click")
         def _put_to_cache(self, *evs):
-            urls = [
-                id
-                for id in
-                self.search_table.rows({"selected": True}).ids().toArray()
-            ]
+            urls = self.search_table.rows({"selected": True}).ids().toArray()
             for url in urls:
                 dbval = [r for r in self._results if r["url"] == url][0]
                 dbval["_id"] = url
                 self.db.put(dbval)
-            self.emit(
-                "cache_them",
-                {
-                    "them": urls,
-                },
+
+            self.toastr_info("Caching " + urls.length.toString() + " musics")
+            self.put_to_cache.disabled = True
+            self.done_cache = 0
+            self.progress.style = "display: block;"
+
+            def update_progress():
+                self.done_cache = self.done_cache + 1
+                self.progress.value = self.done_cache / urls.length
+
+            def add_to_cache(args):
+                cache, keys = args
+                promises = []
+                cached_urls = [key.url for key in keys]
+                for url in urls:
+                    if url in cached_urls:
+                        update_progress()
+                        def inform(obj):
+                            self.toastr_info(obj["title"] + " already cached")
+                        self.db.get(url).then(inform).catch(alert)
+                    else:
+                        def closure_cache_put(url):
+                            def cache_put(resp):
+                                return cache.put(url, resp)
+                            return cache_put
+
+                        promises.append(self.beet_fetch(url).then(closure_cache_put(url)).then(update_progress).catch(alert))
+                return Promise.all(promises)
+
+            def done():
+                self.put_to_cache.disabled = False
+                self.progress.value = 0
+                self.reset_cache()
+                self.init_cache_list()
+                self.progress.style = "display: none;"
+
+            cache_promise = caches.open(self.cache_list.text)
+            keys_promise = cache_promise.then(
+                lambda cache: cache.keys()
+            )
+            Promise.all(
+                [
+                    cache_promise,
+                    keys_promise,
+                ]
+            ).then(
+                add_to_cache
+            ).then(
+                done
+            ).catch(
+                alert
             )
 
         @event.connect("search_button.mouse_click")
@@ -484,62 +527,6 @@ padding: 1em;
                 return
             cookie.set("search_query", self.search_query.text)
 
-        @event.connect("cache_them")
-        def _cache_them(self, *evs):
-            for ev in evs:
-                urls = ev["them"]
-                self.toastr_info("Caching " + urls.length.toString() + " musics")
-                self.put_to_cache.disabled = True
-                self.done_cache = 0
-                self.progress.style = "display: block;"
-
-                def update_progress():
-                    self.done_cache = self.done_cache + 1
-                    self.progress.value = self.done_cache / urls.length
-
-                def add_to_cache(args):
-                    cache, keys = args
-                    promises = []
-                    cached_urls = [key.url for key in keys]
-                    for url in urls:
-                        if url in cached_urls:
-                            update_progress()
-                            def inform(obj):
-                                self.toastr_info(obj["title"] + " already cached")
-                            self.db.get(url).then(inform).catch(alert)
-                        else:
-                            def closure_cache_put(url):
-                                def cache_put(resp):
-                                    return cache.put(url, resp)
-                                return cache_put
-
-                            promises.append(self.beet_fetch(url).then(closure_cache_put(url)).then(update_progress).catch(alert))
-                    return Promise.all(promises)
-
-                def done():
-                    self.put_to_cache.disabled = False
-                    self.progress.value = 0
-                    self.reset_cache()
-                    self.init_cache_list()
-                    self.progress.style = "display: none;"
-
-                cache_promise = caches.open(self.cache_list.text)
-                keys_promise = cache_promise.then(
-                    lambda cache: cache.keys()
-                )
-                Promise.all(
-                    [
-                        cache_promise,
-                        keys_promise,
-                    ]
-                ).then(
-                    add_to_cache
-                ).then(
-                    done
-                ).catch(
-                    alert
-                )
-
         @event.connect("show_button.mouse_click")
         def focus_selected(self, *evs):
             self.cache_table.row({"selected": True}).show().draw("page")
@@ -588,18 +575,6 @@ padding: 1em;
             ).then(
                 load_blob
             )
-
-        @event.connect("play_cached_url")
-        def _play_cached_url(self, *evs):
-            ev = evs[-1]
-            url = ev["url"]
-            self.load_cached_url(
-                url
-            ).then(
-                lambda : self.focus_selected()
-            ).then(
-                lambda : self.audio.node.play()
-            ).catch(alert)
 
         @event.connect("search_query.key_press")
         def _do_search(self, *evs):
