@@ -709,13 +709,8 @@ padding: 1em;
         def _remove(self):
             def delete_cache(cache):
                 promises = []
-                ids = [
-                    id
-                    for id in
-                    self.cache_table.rows({"selected": True}).ids().toArray()
-                ]
-                for id in ids:
-                    url = self.beet_url("item/" + id + "/file")
+                urls = self.cache_table.rows({"selected": True}).ids().toArray()
+                for url in urls:
                     promises.append(cache.delete(url))
                     promises.append(self.db_remove(url))
                 return Promise.all(promises)
