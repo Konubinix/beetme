@@ -364,7 +364,6 @@ padding: 1em;
 
         @event.connect("play_button.mouse_click")
         def _play_cache(self, *evs):
-            ids = []
             id = self.cache_table.row({"selected": True}).id()
             self.play_cache_url(id)
 
