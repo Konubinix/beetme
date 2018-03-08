@@ -231,7 +231,7 @@ padding: 1em;
                         ui.html.th(text="album")
                         ui.html.th(text="artist")
 
-        self.progress = ui.ProgressBar(value=0, flex=0)
+        self.progress = ui.ProgressBar(value=0, flex=0, style="display: none;")
         with ui.TabPanel(flex=0.9) as self.tab:
             with ui.HBox(title="Search") as self.search_widget:
                 with ui.VBox(flex=0.3):
@@ -485,6 +485,7 @@ padding: 1em;
                 self.toastr_info("Caching " + urls.length.toString() + " musics")
                 self.put_to_cache.disabled = True
                 self.done_cache = 0
+                self.progress.style = "display: block;"
 
                 def update_progress():
                     self.done_cache = self.done_cache + 1
@@ -514,6 +515,7 @@ padding: 1em;
                     self.progress.value = 0
                     self.reset_cache()
                     self.init_cache_list()
+                    self.progress.style = "display: none;"
 
                 cache_promise = caches.open(self.cache_list.text)
                 keys_promise = cache_promise.then(
