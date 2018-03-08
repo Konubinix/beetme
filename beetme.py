@@ -414,6 +414,7 @@ padding: 1em;
                 cache, keys = args
                 promises = []
                 cached_urls = [key.url for key in keys]
+                urls_to_cache = []
                 for url in urls:
                     if url in cached_urls:
                         update_progress()
@@ -421,13 +422,20 @@ padding: 1em;
                             self.toastr_info(obj["title"] + " already cached")
                         self.db.get(url).then(inform).catch(alert)
                     else:
-                        def closure_cache_put(url):
-                            def cache_put(resp):
-                                return cache.put(url, resp)
-                            return cache_put
+                        urls_to_cache.append(url)
 
-                        promises.append(self.beet_fetch(url).then(closure_cache_put(url)).then(update_progress).catch(alert))
-                return Promise.all(promises)
+                # chain the fetches sequentially
+                def pop_url_to_cache():
+                    if not urls_to_cache:
+                        done()
+                        return
+                    url = urls_to_cache.pop(0)
+                    def closure_cache_put(url):
+                        def cache_put(resp):
+                            return cache.put(url, resp)
+                        return cache_put
+                    self.beet_fetch(url).then(closure_cache_put(url)).then(update_progress).then(pop_url_to_cache).catch(alert)
+                return pop_url_to_cache()
 
             def done():
                 self.put_to_cache.disabled = False
@@ -447,8 +455,6 @@ padding: 1em;
                 ]
             ).then(
                 add_to_cache
-            ).then(
-                done
             ).catch(
                 alert
             )
@@ -824,7 +830,8 @@ padding: 1em;
         def init_cache_list(self):
             def closure_inited(inited):
                 def _init_cache_list(names):
-                    names.remove("beetme-offline")
+                    if "beetme-offline" in names:
+                        names.remove("beetme-offline")
                     if not "default" in names:
                         names = ["default"] + names
                     self.cache_list.options = names
