@@ -838,7 +838,7 @@ padding: 1em;
                 ).catch(alert)
             closure_inited(self.inited)
 
-        def debug_promise(self):
+        def bluebird_debug_promise(self):
             Promise.config(
                 {
                     "warnings": True,
@@ -850,7 +850,7 @@ padding: 1em;
         def init(self):
             # PouchDB.debug.enable('*')
             cookie.defaults.expires = 7
-            # self.debug_promise()
+            # self.bluebird_debug_promise()
             def init_post():
                 tab_current = cookie.get("tab.current")
                 if tab_current != None:
