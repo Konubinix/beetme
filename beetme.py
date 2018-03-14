@@ -986,7 +986,7 @@ padding: 1em;
         def init(self):
             # PouchDB.debug.enable('*')
             cookie.defaults.expires = 7
-            self.bluebird_debug_promise()
+            # self.bluebird_debug_promise()
             def init_post():
                 tab_current = cookie.get("tab.current")
                 if tab_current != None:
