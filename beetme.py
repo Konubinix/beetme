@@ -197,6 +197,7 @@ body {
 background-color: PaleTurquoise;
 background-color: WhiteSmoke;
 background-color: #dcf1ff;
+font-family: 'Arial';
 }
 
 .p-TabBar-tabLabel{
@@ -251,7 +252,7 @@ padding: 1em;
                     head_table(self.search_results)
 
             with ui.HBox(title="Play"):
-                with ui.VBox(flex=0.3):
+                with ui.VBox(flex=0.1):
                     with ui.HBox():
                         ui.Label(text="cache", flex=0)
                         self.cache_list = ui.ComboBox(
@@ -259,24 +260,35 @@ padding: 1em;
                             flex=1
                         )
                     with ui.HBox(flex=0.1):
-                        self._reset_cache = ui.Button(text="Reset cache", flex=0.2)
-                        self.remove = ui.Button(text="Remove", flex=0.1)
+                        self._reset_cache = ui.Button(text="↻", flex=0.2)
+                        self.remove = ui.Button(text="🗑", flex=0.1)
                     with ui.HBox(flex=1):
-                        self.play_button = ui.Button(text="Play selected", flex=0.2)
-                        self.show_button = ui.Button(text="Show", flex=0.1)
+                        self.play_button = ui.Button(text="▶☛", flex=0.2)
+                        self.show_button = ui.Button(text="☝", flex=0.1)
                     with ui.HBox(flex=0.1):
-                        self.toggle_button = ui.ToggleButton(text="Play", flex=0.2)
-                        self.shuffle_button = ui.ToggleButton(text="Random", flex=0.2)
+                        self.toggle_button = ui.ToggleButton(text="▶", flex=0.2)
+                        self.shuffle_button = ui.ToggleButton(text="🎲", flex=0.2)
+                        self.repeat_button = ui.ToggleButton(text="🔁", flex=0.1)
                     with ui.HBox(flex=0.2):
-                        self.prev_button = ui.Button(text="<<-", flex=0.7)
-                        self.seekbackward_button = ui.Button(text="<-", flex=0.2)
-                        self.seekforward_button = ui.Button(text="->", flex=0.2)
-                        self.next_button = ui.Button(text="->>", flex=0.7)
+                        self.prev_button = ui.Button(text="⏮", flex=0.7)
+                        self.seekbackward_button = ui.Button(text="⏪", flex=0.2)
+                        self.seekforward_button = ui.Button(text="⏩", flex=0.2)
+                        self.next_button = ui.Button(text="⏭", flex=0.7)
+                    ui.Label(text="Speed")
+                    with ui.HBox(flex=0.2):
+                        self.slower = ui.Button(text="-", flex=0.7)
+                        self.playback_rate = ui.LineEdit(text="1", style="width: 2em;")
+                        self.faster = ui.Button(text="+", flex=0.7)
                 with ui.Layout(css_class="table", flex=0.7):
                     self.cache = ui.html.table(flex=0.5)
                     head_table(self.cache)
             with ui.FormLayout(title="Cache"):
-                self.clear_cache = ui.Button(text="Remove cache", flex=0)
+                self.clear_cache = ui.Button(text="Clear cache", flex=0)
+                self.remove_cache = ui.Button(text="Remove cache", flex=0)
+                with ui.HBox(flex=0):
+                    self.cache_old_name = ui.Label()
+                    self.cache_new_name = ui.LineEdit(text="")
+                    self.rename_cache = ui.Button(text="Rename cache", flex=0)
             with ui.FormLayout(title="Config"):
                 self.update = ui.Button(text="Update", flex=1)
                 self._beet_url = ui.LineEdit(title="Beet url")
@@ -295,6 +307,77 @@ padding: 1em;
             self.timereset = ui.Button(text="Reset", flex=0.5)
 
     class JS:
+        @event.connect("playback_rate.text")
+        def set_playback_rate(self, *evs):
+            self.audio.node.playbackRate = parseFloat(self.playback_rate.text)
+            cookie.set(self.cache_list.text + "_playback_rate", self.playback_rate.text)
+
+        @event.connect("rename_cache.mouse_click")
+        def _rename_cache(self, *evs):
+            _new = self.cache_new_name.text
+            new_db = PouchDB(_new, {})
+            def destroy_it():
+                PouchDB(self.cache_list.text, {}).destroy()
+            db_prom = self.db.replicate.to(new_db).then(
+                destroy_it
+            )
+            cache_promise = caches.open(self.cache_list.text)
+            keys_promise = cache_promise.then(
+                lambda cache: cache.keys()
+            )
+            new_cache_promise = caches.open(_new)
+
+            def replicate(args):
+                cache, keys, new_cache = args
+                promises = []
+                for key in keys:
+                    def put_to_other_new_cache(key):
+                        def _put_to_other_new_cache(resp):
+                            return new_cache.put(key, resp)
+                        return _put_to_other_new_cache
+                    promises.append(
+                        cache.match(key).then(
+                            put_to_other_new_cache(key)
+                        )
+                    )
+                return promises
+
+            def delete_current_cache():
+                return caches.delete(
+                    self.cache_list.text
+                )
+
+            def update_cache_info():
+                cookie.set("current_cache", self.cache_new_name.text)
+
+            cache_prom = Promise.all(
+                [
+                    cache_promise,
+                    keys_promise,
+                    new_cache_promise,
+                ]
+            ).then(
+                replicate
+            ).then(
+                delete_current_cache
+            ).then(
+                update_cache_info
+            )
+            return Promise.all(
+                [
+                    db_prom,
+                    cache_prom
+                ]
+            ).then(self.reload).catch(alert)
+
+        @event.connect("slower.mouse_click")
+        def _slower(self, *evs):
+            self.playback_rate.text = parseFloat(self.playback_rate.text) - 0.1
+
+        @event.connect("faster.mouse_click")
+        def _faster(self, *evs):
+            self.playback_rate.text = parseFloat(self.playback_rate.text) + 0.1
+
         @event.connect("timeplus.mouse_click")
         def _timeplus(self, *evs):
             self.time_min.text = parseInt(self.time_min.text) + 1
@@ -366,23 +449,22 @@ padding: 1em;
         @event.connect("play_button.mouse_click")
         def _play_cache(self, *evs):
             id = self.cache_table.row({"selected": True}).id()
-            self.play_cache_url(id)
+            return self.play_cache_url(id)
 
-        def load_cache(self):
-            id = self.cache_table.row({"selected": True}).id()
-            self.load_cached_url(id)
+        def load_last_song(self):
+            url = cookie.get(self.cache_list.text + "_current_song_url")
+            self.load_cached_url(url)
 
         def play_cache_url(self, url):
-            if cookie.get(self.cache_list.text + "_current_song_id") != url:
-                cookie.remove(self.cache_list.text + "_current_time")
-            cookie.set(self.cache_list.text + "_current_song_id", url)
-            self.load_cached_url(
+            return self.load_cached_url(
                 url
+            ).catch(
+                alert
             ).then(
                 lambda : self.focus_selected()
             ).then(
                 lambda : self.audio.node.play()
-            ).catch(alert)
+            )
 
         def beet_url(self, query):
             url = self._beet_url.text
@@ -433,9 +515,38 @@ padding: 1em;
                     url = urls_to_cache.pop(0)
                     def closure_cache_put(url):
                         def cache_put(resp):
-                            return cache.put(url, resp)
+                            def alert_bad_resp(exception):
+                                window.exception = exception
+                                window.resp = resp
+                                self.db.get(url).then(
+                                    lambda obj: (
+                                        "Could not cache url " + url
+                                        + " for song '" + obj["title"] + "'."
+                                        + " Resp status: " + resp.status
+                                    )
+                                ).then(
+                                    alert
+                                ).catch(alert)
+                            return cache.put(
+                                url, resp
+                            ).catch(
+                                alert_bad_resp
+                            )
                         return cache_put
-                    self.beet_fetch(url).then(closure_cache_put(url)).then(update_progress).then(pop_url_to_cache).catch(alert)
+                    def alert_n_pop(obj):
+                        alert(obj)
+                        return pop_url_to_cache()
+                    prom = self.beet_fetch(
+                        url
+                    ).then(
+                        closure_cache_put(url)
+                    ).then(
+                        update_progress
+                    ).then(
+                        pop_url_to_cache
+                    ).catch(
+                        alert_n_pop
+                    )
                 return pop_url_to_cache()
 
             def done():
@@ -553,6 +664,9 @@ padding: 1em;
                         self.audio.node.volume = 0.7 * self.audio.node.volume
 
         def load_cached_url(self, url):
+            if cookie.get(self.cache_list.text + "_current_song_url") != url:
+                cookie.remove(self.cache_list.text + "_current_time")
+            cookie.set(self.cache_list.text + "_current_song_url", url)
             def set_mediadata(obj):
                 navigator.mediaSession.metadata = MediaMetadata({
                     "title": obj["title"],
@@ -567,24 +681,36 @@ padding: 1em;
             def update_track(obj):
                 if navigator.mediaSession != None:
                     set_mediadata(obj)
-            self.db.get(url).then(update_track).catch(alert)
+            update_promise = self.db.get(url).then(update_track).catch(alert)
 
             def load_blob(blob):
                 url = window.URL.createObjectURL(blob)
                 self.audio.node.pause()
                 self.audio.node["src"] = url
+                loaded_promise = Promise(
+                    lambda resolve: self.audio.node.addEventListener(
+                        "loadeddata",
+                        resolve
+                    )
+                )
                 self.audio.node.load()
+                self.set_playback_rate()
                 current_time = cookie.get(self.cache_list.text + "_current_time")
                 if current_time != None:
                     self.audio.node.currentTime = current_time
+                return loaded_promise
 
-            return caches.open(self.cache_list.text).then(
+            cache_promise = caches.open(self.cache_list.text).then(
                 lambda cache: cache.match(url)
             ).then(
                 lambda resp: resp.blob()
             ).then(
                 load_blob
             )
+            return Promise.all([
+                cache_promise,
+                update_promise,
+            ])
 
         @event.connect("search_query.key_press")
         def _do_search(self, *evs):
@@ -662,7 +788,9 @@ padding: 1em;
                 self.toastr_info("Cache reset")
                 self.focus_selected()
                 if cookie.get(self.cache_list.text + "_current_time"):
-                    self.load_cache()
+                    self.load_last_song()
+                self.shuffle_button.checked = cookie.get(self.cache_list.text + "_random") == "true"
+                self.playback_rate.text = cookie.get(self.cache_list.text + "_playback_rate") or "1"
 
             def get_db_info(keys):
                 paths = [
@@ -692,17 +820,25 @@ padding: 1em;
         def reload(self):
             window.location.reload(True)
 
-        @event.connect("clear_cache.mouse_click")
-        def _clear_cache(self):
+        @event.connect("remove_cache.mouse_click")
+        def _remove_cache(self):
             if confirm("Really removing the cache?"):
                 cookie.remove("current_cache")
-                caches.delete(
-                    self.cache_list.text
-                ).then(
-                    self.clean_db
-                ).then(
-                    self.reload
-                )
+                self.clear_cache_values()
+
+        def clear_cache_values(self):
+            return caches.delete(
+                self.cache_list.text
+            ).then(
+                self.clean_db
+            ).then(
+                self.reload
+            )
+
+        @event.connect("clear_cache.mouse_click")
+        def _clear_cache(self):
+            if confirm("Really clear the cache?"):
+                self.clear_cache_values()
 
         def db_remove(self, url):
             def db_remove(obj):
@@ -736,6 +872,7 @@ padding: 1em;
 
         @event.connect("cache_list.text")
         def change_cache(self, *evs):
+            self.cache_old_name.text = self.cache_list.text
             if self.inited:
                 cookie.set("current_cache", self.cache_list.text)
                 self.setup_db().then(
@@ -807,8 +944,7 @@ padding: 1em;
 
         def setup_skewer(self):
             skewer = window.document.createElement('script')
-            #skewer["src"] = "http://192.168.2.2:8080/skewer"
-            skewer["src"] = "http://0.0.0.0:8080/skewer"
+            skewer["src"] = "http://192.168.1.5:8080/skewer"
             window.document.head.appendChild(skewer)
 
         @event.connect("shuffle_button.checked")
@@ -836,7 +972,7 @@ padding: 1em;
                 window.caches.keys().then(
                     _init_cache_list
                 ).catch(alert)
-            closure_inited(self.inited)
+            return closure_inited(self.inited)
 
         def bluebird_debug_promise(self):
             Promise.config(
@@ -850,7 +986,7 @@ padding: 1em;
         def init(self):
             # PouchDB.debug.enable('*')
             cookie.defaults.expires = 7
-            # self.bluebird_debug_promise()
+            self.bluebird_debug_promise()
             def init_post():
                 tab_current = cookie.get("tab.current")
                 if tab_current != None:
@@ -858,9 +994,6 @@ padding: 1em;
                         if child.title == tab_current:
                             self.tab.current = child
                             break
-                random = cookie.get(self.cache_list.text + "_random")
-                if random == "true":
-                    self.shuffle_button.checked = True
                 beet_url = cookie("beet_url")
                 if beet_url == None:
                     self._beet_url.text = prompt("Please give me the url to beet web")
@@ -885,7 +1018,7 @@ padding: 1em;
             manifest["href"] = "/beetme.json"
             document.getElementsByTagName('head')[0].appendChild(manifest)
             navigator.serviceWorker.register("/beetme.js").catch(self.toastr_warn)
-            # self.setup_skewer()
+            self.setup_skewer()
             self.audio.node.controls = True
             toastr.options.positionClass = "toast-bottom-right"
             toastr.flush = toastr.clear
@@ -935,22 +1068,52 @@ padding: 1em;
             self.seekforward()
 
         def seekforward(self):
-            self.audio.node.currentTime = Math.min(self.audio.node.currentTime + self.skipTime, self.audio.node.duration)
+            new_time = self.audio.node.currentTime + self.skipTime
+            if self.audio.node.duration < new_time:
+                new_time = new_time - self.audio.node.duration
+                def set_new_time():
+                    self.audio.node.currentTime = new_time
+                    if self.toggle_button.checked == True:
+                        self.audio.node.play()
+                self.select_next()
+                url = self.cache_table.row({"selected": True}).id()
+                self.load_cached_url(url).then(
+                    set_new_time
+                )
+            else:
+                self.audio.node.currentTime = new_time
 
         @event.connect("seekbackward_button.mouse_click")
         def _seekbackward(self, *evs):
             self.seekbackward()
 
         def seekbackward(self, *evs):
-            self.audio.node.currentTime = Math.max(self.audio.node.currentTime - self.skipTime, 0)
+            new_time = self.audio.node.currentTime - self.skipTime
+            if new_time >= 0:
+                self.audio.node.currentTime = new_time
+            else:
+                def set_new_time():
+                    self.audio.node.currentTime = self.audio.node.duration + new_time
+                    if self.toggle_button.checked == True:
+                        self.audio.node.play()
+                self.select_prev()
+                url = self.cache_table.row({"selected": True}).id()
+                self.load_cached_url(url).then(
+                    set_new_time
+                )
 
         @event.connect("prev_button.mouse_click")
         def _previoustrack(self, *evs):
             self.previoustrack()
 
-        def previoustrack(self, *evs):
-            self.select_prev()
-            self._play_cache()
+        def previoustrack(self):
+            index_selected = self.cache_table.row({"selected": true}).index()
+            indexes = self.cache_table.rows({"filter": "applied"}).indexes()
+            old_pos = indexes.indexOf(index_selected)
+            if old_pos != 0 or self.repeat_button.checked:
+                self.select_prev()
+                return self._play_cache()
+            return
 
         def select_next(self):
             index_selected = self.cache_table.row({"selected": true}).index()
@@ -978,8 +1141,14 @@ padding: 1em;
             self.nexttrack()
 
         def nexttrack(self, *evs):
+            index_selected = self.cache_table.row({"selected": true}).index()
+            indexes = self.cache_table.rows({"filter": "applied"}).indexes()
+            maxvalue = indexes.length
+            old_pos = indexes.indexOf(index_selected)
             if self.shuffle_button.checked:
                 self.select_rand()
+            elif (maxvalue == old_pos + 1) and not self.repeat_button.checked:
+                return
             else:
                 self.select_next()
             self._play_cache()
