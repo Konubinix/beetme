@@ -215,6 +215,15 @@ overflow: scroll;
 .total {
 padding: 1em;
 }
+
+.flx-ToggleButton-checked {
+border-style: inset;
+}
+
+button:disabled {
+color: #999;
+background-color: #ddd;
+}
 """
     def init(self):
         def head_table(table):
