@@ -771,7 +771,9 @@ padding: 1em;
                     select_n_play,
                 )
                 if data != []:
-                    selected_row_id = cookie.get(self.cache_list.text + "_selected_row")
+                    selected_row_id = cookie.get(self.cache_list.text + "_current_song_url")
+                    if selected_row_id == None:
+                        selected_row_id = cookie.get(self.cache_list.text + "_selected_row")
                     if selected_row_id != None:
                         selected_row = self.cache_table.row(
                             "*[id='" + selected_row_id + "']"
