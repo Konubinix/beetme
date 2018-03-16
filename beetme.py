@@ -523,30 +523,32 @@ background-color: #ddd;
                         return
                     url = urls_to_cache.pop(0)
                     def closure_cache_put(url):
-                        def cache_put(resp):
+                        def cache_put(blob):
                             def alert_bad_resp(exception):
                                 window.exception = exception
-                                window.resp = resp
                                 self.db.get(url).then(
                                     lambda obj: (
                                         "Could not cache url " + url
                                         + " for song '" + obj["title"] + "'."
-                                        + " Resp status: " + resp.status
                                     )
                                 ).then(
                                     alert
                                 ).catch(alert)
                             return cache.put(
-                                url, resp
+                                url, Response(blob)
                             ).catch(
                                 alert_bad_resp
                             )
                         return cache_put
+
                     def alert_n_pop(obj):
                         alert(obj)
                         return pop_url_to_cache()
+
                     prom = self.beet_fetch(
                         url
+                    ).then(
+                        lambda resp: resp.blob()
                     ).then(
                         closure_cache_put(url)
                     ).then(
