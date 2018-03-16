@@ -635,19 +635,19 @@ background-color: #ddd;
             return self.beet_fetch(url)
 
         def beet_fetch(self, url):
+            options = {}
             headers = {}
             if self._beet_username.text != "":
                 headers['Authorization'] = 'Basic ' + btoa(self._beet_username.text + ":" + self._beet_password.text)
+                options["credentials"] = "include"
+            options["headers"] = Headers(headers)
             def error_catch(err):
                 alert("Failed to process url: " + url)
                 window.err = err
                 return Promise.reject(err)
             return fetch(
                 url,
-                {
-                    "headers": Headers(headers),
-                    "credentials": "include",
-                }
+                options,
             ).catch(error_catch)
 
         @event.connect('search_query.text')
