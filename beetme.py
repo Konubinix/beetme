@@ -671,12 +671,13 @@ background-color: #ddd;
             if now > self.end_time:
                 self.audio.node.pause()
                 self._timereset()
+                self.seekbackward(50)
             else:
                 duration = moment.duration(self.end_time - now)
                 self.time_min.text = duration.minutes()
                 self.time_sec.text = duration.seconds()
                 if duration.minutes() == 0:
-                    if duration.seconds() in [10, 20, 30, 40, 50]:
+                    if duration.seconds() in [10, 20, 30]:
                         self.audio.node.volume = 0.7 * self.audio.node.volume
 
         def load_cached_url(self, url):
@@ -1091,6 +1092,7 @@ background-color: #ddd;
                 new_time = new_time - self.audio.node.duration
                 def set_new_time():
                     self.audio.node.currentTime = new_time
+                    cookie.set(self.cache_list.text + "_current_time", self.audio.node.currentTime)
                     if self.toggle_button.checked == True:
                         self.audio.node.play()
                 self.select_next()
@@ -1100,18 +1102,22 @@ background-color: #ddd;
                 )
             else:
                 self.audio.node.currentTime = new_time
+                cookie.set(self.cache_list.text + "_current_time", self.audio.node.currentTime)
 
         @event.connect("seekbackward_button.mouse_click")
         def _seekbackward(self, *evs):
             self.seekbackward()
 
-        def seekbackward(self, *evs):
-            new_time = self.audio.node.currentTime - self.skipTime
+        def seekbackward(self, skip_time=None):
+            skip_time = skip_time or self.skipTime
+            new_time = self.audio.node.currentTime - skip_time
             if new_time >= 0:
                 self.audio.node.currentTime = new_time
+                cookie.set(self.cache_list.text + "_current_time", self.audio.node.currentTime)
             else:
                 def set_new_time():
                     self.audio.node.currentTime = self.audio.node.duration + new_time
+                    cookie.set(self.cache_list.text + "_current_time", self.audio.node.currentTime)
                     if self.toggle_button.checked == True:
                         self.audio.node.play()
                 self.select_prev()
