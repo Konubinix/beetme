@@ -398,6 +398,10 @@ background-color: #ddd;
         @event.connect("timereset.mouse_click")
         def _timereset(self, *evs):
             self.run_timer.checked = False
+            if self.run_timer_interval != None:
+                clearInterval(self.run_timer_interval)
+                self.run_timer_interval = None
+                self.end_time = None
             self.time_min.text = "15"
             self.time_sec.text = "00"
 
@@ -409,6 +413,7 @@ background-color: #ddd;
             else:
                 if self.run_timer_interval:
                     clearInterval(self.run_timer_interval)
+                    self.run_timer_interval = None
                     self.end_time = None
 
         @event.connect("tab.current")
