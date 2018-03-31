@@ -493,10 +493,11 @@ background-color: #ddd;
         @event.connect("put_to_cache.mouse_click")
         def _put_to_cache(self, *evs):
             urls = self.search_table.rows({"selected": True}).ids().toArray()
+            promises = []
             for url in urls:
                 dbval = [r for r in self._results if r["url"] == url][0]
                 dbval["_id"] = url
-                self.db.put(dbval)
+                promises.append(self.db.put(dbval))
 
             self.toastr_info("Caching " + urls.length.toString() + " musics")
             self.put_to_cache.disabled = True
@@ -580,7 +581,7 @@ background-color: #ddd;
                 [
                     cache_promise,
                     keys_promise,
-                ]
+                ] + promises
             ).then(
                 add_to_cache
             ).catch(
