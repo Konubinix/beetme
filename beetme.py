@@ -497,7 +497,13 @@ background-color: #ddd;
             for url in urls:
                 dbval = [r for r in self._results if r["url"] == url][0]
                 dbval["_id"] = url
-                promises.append(self.db.put(dbval))
+                def handle_error(err):
+                    if err["status"] == 409:
+                        # ok, keep old data
+                        return
+                    else:
+                        throw(err)
+                promises.append(self.db.put(dbval).catch(handle_error))
 
             self.toastr_info("Caching " + urls.length.toString() + " musics")
             self.put_to_cache.disabled = True
