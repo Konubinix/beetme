@@ -1036,6 +1036,7 @@ background-color: #ddd;
                 self.search_query.text = cookie.get("search_query") or ""
                 self.init_cache_list()
                 self.inited = True
+                navigator.storage.persist().catch(alert)
 
             setTimeout(init_post, 0)
             self.setup_meta()
