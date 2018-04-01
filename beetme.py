@@ -295,6 +295,11 @@ background-color: #ddd;
                 self.clear_cache = ui.Button(text="Clear cache", flex=0)
                 self.remove_cache = ui.Button(text="Remove cache", flex=0)
                 with ui.HBox(flex=0):
+                    self.estimate = ui.Label()
+                    self.update_estimate = ui.Button(text="Update estimate")
+                    self.quota_request = ui.LineEdit(text="100")
+                    self.quota_request_button = ui.Button(text="Request quota")
+                with ui.HBox(flex=0):
                     self.cache_old_name = ui.Label()
                     self.cache_new_name = ui.LineEdit(text="")
                     self.rename_cache = ui.Button(text="Rename cache", flex=0)
@@ -320,6 +325,33 @@ background-color: #ddd;
         def set_playback_rate(self, *evs):
             self.audio.node.playbackRate = parseFloat(self.playback_rate.text)
             cookie.set(self.cache_list.text + "_playback_rate", self.playback_rate.text)
+
+        @event.connect("quota_request_button.mouse_click")
+        def _quota_request_button(self, *evs):
+            def onquota(granted):
+                self.toastr_info("Granted " + (granted / 1024 / 1024).toFixed(2)
+                                 + "MB"
+                )
+                self._update_estimate()
+            def onquota_error():
+                self.toastr_info("Not granted...")
+                self._update_estimate()
+            navigator.webkitPersistentStorage.requestQuota(
+                parseInt(self.quota_request.text) * 1024 * 1024,
+                onquota,
+                onquota_error,
+            )
+
+        @event.connect("update_estimate.mouse_click")
+        def _update_estimate(self, *evs):
+            def update_it(estimate):
+                self.estimate.text = (
+                    "Using " + (estimate.usage / 1024 / 1024).toFixed(2) + "M of "
+                    + (estimate.quota / 1024 / 1024).toFixed(2)
+                    + "M : " + (100 * (estimate.usage / estimate.quota)).toFixed(0)
+                    + "%"
+                )
+            navigator.storage.estimate().then(update_it)
 
         @event.connect("rename_cache.mouse_click")
         def _rename_cache(self, *evs):
@@ -1037,6 +1069,7 @@ background-color: #ddd;
                 self.init_cache_list()
                 self.inited = True
                 navigator.storage.persist().catch(alert)
+                self._update_estimate()
 
             setTimeout(init_post, 0)
             self.setup_meta()
