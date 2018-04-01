@@ -288,7 +288,7 @@ background-color: #ddd;
                         self.slower = ui.Button(text="-", flex=0.7)
                         self.playback_rate = ui.LineEdit(text="1", style="width: 2em;")
                         self.faster = ui.Button(text="+", flex=0.7)
-                with ui.Layout(css_class="table", flex=0.7):
+                with ui.Layout(css_class="table", flex=0.6):
                     self.cache = ui.html.table(flex=0.5)
                     head_table(self.cache)
             with ui.FormLayout(title="Cache"):
