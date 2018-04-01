@@ -434,6 +434,7 @@ background-color: #ddd;
                 clearInterval(self.run_timer_interval)
                 self.run_timer_interval = None
                 self.end_time = None
+                self.reload()
             self.time_min.text = "15"
             self.time_sec.text = "00"
 
