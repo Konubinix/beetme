@@ -1070,7 +1070,7 @@ background-color: #ddd;
             manifest["href"] = "/beetme.json"
             document.getElementsByTagName('head')[0].appendChild(manifest)
             navigator.serviceWorker.register("/beetme.js").catch(self.toastr_warn)
-            self.setup_skewer()
+            # self.setup_skewer()
             self.audio.node.controls = True
             toastr.options.positionClass = "toast-bottom-right"
             toastr.flush = toastr.clear
