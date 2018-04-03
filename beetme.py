@@ -104,26 +104,6 @@ add_asset(
 )
 
 add_asset(
-    "dataTables.rowReorder.js",
-    os.path.join(
-        os.path.dirname(__file__),
-        "bower_components",
-        "datatables.net-rowreorder",
-        "js",
-        "dataTables.rowReorder.min.js"),
-)
-
-add_asset(
-    "dataTables.rowReorder.css",
-    os.path.join(
-        os.path.dirname(__file__),
-        "bower_components",
-        "datatables.net-rowreorder-dt",
-        "css",
-        "rowReorder.dataTables.css"),
-)
-
-add_asset(
     "dataTables.buttons.js",
     os.path.join(
         os.path.dirname(__file__),
@@ -662,13 +642,13 @@ background-color: #ddd;
                     {
                         "data": data,
                         "columns": columns,
-                        "rowReorder": True,
                         "select": {
                             "style": select_style,
                         },
                         "lengthMenu": [[50, 100, 200, -1], [50, 100, 200, "All"]],
                     }
                 )
+
             if self.search_table != None:
                 self.search_table.destroy()
                 self.search_results.node.innerHTML = ""
@@ -807,11 +787,16 @@ background-color: #ddd;
                 self.cached_data = data
                 if self.cache_table != None:
                     self.cache_table.destroy()
+                order = cookie.get(self.cache_list.text + "_order")
+                if order != None:
+                    order = JSON.parse(order)
+                else:
+                    order = [2, "desc"]
                 self.cache_table = jQuery(self.cache.node).DataTable(
                     {
                         "data": data,
                         "columns": columns,
-                        "rowReorder": True,
+                        "order": order,
                         "select": {
                             "style": "single",
                         },
@@ -842,7 +827,13 @@ background-color: #ddd;
                 def on_select(e, dt, type, indexes):
                     if type == 'row':
                         cookie.set(self.cache_list.text + "_selected_row", dt.row(indexes[0]).id())
+                def on_order(*e):
+                    cookie.set(
+                        self.cache_list.text + "_order",
+                        JSON.stringify(self.cache_table.order())
+                    )
 
+                self.cache_table.on('order', on_order)
                 self.cache_table.on('select', on_select)
                 self.toastr_info("Cache reset")
                 self.focus_selected()
