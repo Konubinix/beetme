@@ -190,6 +190,7 @@ padding-top: 3em;
 
 .table {
 overflow: scroll;
+max-width: 70%;
 }
 
 .total {
